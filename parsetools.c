@@ -16,6 +16,7 @@ int split_cmd_line(char* line, char** list_to_populate) {
 
    while(list_to_populate[i] != NULL && i < MAX_LINE_WORDS - 1)  {
        list_to_populate[++i] = strtok_r(NULL, delimiters, &saveptr);
+       // printf("list_to_populate[%d]: %s\n", i, list_to_populate[i]);
    };
 
    return i;
