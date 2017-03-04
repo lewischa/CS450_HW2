@@ -6,7 +6,7 @@ int redirectPos(char **line, int startPos);
 int numCommands(char **line, int *pipes, int *redirects);
 char** getCommand(char** line, int startPos, int endPos);
 void exec(char **line);
-void loop_exec(char ***progs, int n);
+void loop_exec(char ***progs);
 void error(char* s);
 
 #endif 
