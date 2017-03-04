@@ -19,10 +19,6 @@ int main() {
         // for (int i=0; i < num_words; i++)
         //     printf("%s ", line_words[i]);
 
-        int piped;
-        piped = isPiped(line_words, 0);
-        int redirect;
-        redirect = isRedirect(line_words, 0);
         exec(line_words);
         while (wait(NULL) != -1);
         // printf("line first piped at position %d\n", piped);
@@ -33,3 +29,6 @@ int main() {
 
     return 0;
 }
+
+
+
