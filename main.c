@@ -40,10 +40,10 @@ int main() {
                 argNumber = 0;
                 cmdNumber++;
                 cmd[cmdNumber].args = malloc(5 * sizeof(char*));
-                continue;
+            } else {
+                cmd[cmdNumber].args[argNumber] = line_words[i];
+                argNumber++;
             }
-            cmd[cmdNumber].args[argNumber] = line_words[i];
-            argNumber++;
         }
 
         if ( num_words > 0 ) {
