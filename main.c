@@ -42,17 +42,13 @@ int main() {
                 cmd[cmdNumber].args = malloc(5 * sizeof(char*));
             } else {
                 cmd[cmdNumber].args[argNumber] = line_words[i];
+                // printf("Inside else: %s\n", cmd[cmdNumber].args[argNumber]);
                 argNumber++;
+                if ( (i + 1) == num_words ) {
+                    cmd[cmdNumber].args[argNumber] = NULL;
+                }
             }
         }
-
-        if ( num_words > 0 ) {
-            cmd[++cmdNumber].args = NULL;
-        } else {
-            cmd[0].args = NULL;
-        }
-
-        exec_test(cmd);
 
         // for ( int i = 0; i < cmdNumber; i++ ) {
         //     printf("cmd[%d]: ", i);
@@ -63,12 +59,29 @@ int main() {
         //     }
         //     printf("\n");
         // }
+
+        if ( num_words > 0 ) {
+            cmd[++cmdNumber].args = NULL;
+            // printf("cmdNumber: %d\n", cmdNumber);
+        } else {
+            cmd[0].args = NULL;
+        }
+
+        
+
+        exec_test(cmd);
+
+        
         // printf("\n");
         // exec(line_words);
         // while (wait(NULL) != -1);
         // printf("line first piped at position %d\n", piped);
         // printf("line first redirected at position %d\n", redirect);
         // printf("\n");
+        // for ( int i = 0; i <= cmdNumber; i++ ) {
+        //     free(cmd[i].args);
+        // }
+        free(cmd);
         printf("Pipe_shell$ ");
     }
 
