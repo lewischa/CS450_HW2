@@ -8,7 +8,7 @@
 
 int isMeta(char* c) {
     // printf("isMeta: %s\n", c);
-    if (strcmp(c, "|") == 0 || strcmp(c, "<") == 0 || strcmp(c, ">") == 0) {
+    if ( strcmp(c, "|") == 0 ) {
         return 1;
     } 
     return 0;
@@ -50,6 +50,13 @@ int main() {
             }
         }
 
+        if ( num_words > 0 ) {
+            cmd[++cmdNumber].args = NULL;
+            // printf("cmdNumber: %d\n", cmdNumber);
+        } else {
+            cmd[0].args = NULL;
+        }
+
         // for ( int i = 0; i < cmdNumber; i++ ) {
         //     printf("cmd[%d]: ", i);
         //     int j = 0;
@@ -60,16 +67,9 @@ int main() {
         //     printf("\n");
         // }
 
-        if ( num_words > 0 ) {
-            cmd[++cmdNumber].args = NULL;
-            // printf("cmdNumber: %d\n", cmdNumber);
-        } else {
-            cmd[0].args = NULL;
-        }
-
         
 
-        exec_test(cmd);
+        // exec_test(cmd);
 
         
         // printf("\n");
