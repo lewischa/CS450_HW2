@@ -9,6 +9,8 @@ int pipePos(char **line, int startPos);
 int redirectPos(char **line, int startPos);
 int numCommands(char **line, int *pipes, int *redirects);
 char** getCommand(char** line, int startPos, int endPos);
+int isMeta(char* c);
+void exec(char** line, int num_words);
 void exec_test(struct command *cmd);
 // void exec(char **line);
 // void loop_exec(char ***progs);
