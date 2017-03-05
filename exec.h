@@ -3,13 +3,13 @@
 
 struct command {
     char **args;
-    int lessThan;
-    int greaterThan;
+    // int lessThan;
+    // int greaterThan;
 };
 
 int pipePos(char **line, int startPos);
 //int redirectPos(char **line, int startPos);
-void redirectPos(struct command &cmd, int args);
+void redirectPos(struct command *cmd, int index);
 int numCommands(char **line, int *pipes, int *redirects);
 char** getCommand(char** line, int startPos, int endPos);
 int isMeta(char* c);

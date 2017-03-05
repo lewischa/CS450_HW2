@@ -23,15 +23,21 @@ int pipePos(char **line, int startPos) {
 }
 
 
-int redirectPos(char **line, int startPos) {
-	int i = startPos;
-	while (line[i] != '\0') {
-		if (strcmp(line[i], "<") == 0 || strcmp(line[i], ">") == 0) {
-			return i;
-		}
-		i++;
-	}
-	return -1;
+void redirectPos(struct command *cmd, int index) {
+	// printf("in redirectPos\n");
+	// int i = 0; 
+	// while ( cmd[index].args[i] != '\0' ) {
+	// 	if ( strcmp(cmd[index].args[i], "<") == 0 ) {
+	// 		// printf("< is at index %d\n", i);
+	// 		cmd[index].lessThan = i;
+	// 	}
+	// 	if ( strcmp(cmd[index].args[i], ">") == 0 ) {
+	// 		// printf("> is at index %d\n", i);
+	// 		cmd[index].greaterThan = i;
+	// 	}
+	// 	i++;
+	// }
+	// // return cmd;
 }
 
 int numCommands(char **line, int *pipes, int *redirects) {
@@ -174,6 +180,8 @@ int isMeta(char* c) {
 void exec(char** line_words, int num_words) {
 	struct command *cmd = malloc(num_words * sizeof(char**));
     cmd[0].args = malloc(5 * sizeof(char*));
+    // cmd[0].lessThan = -1;
+    // cmd[0].greaterThan = -1;
     int cmdNumber = 0;
     int argNumber = 0;
     for ( int i = 0; i < num_words; i++ ) {
@@ -181,14 +189,18 @@ void exec(char** line_words, int num_words) {
         if ( isMeta(line_words[i]) ) {
             cmd[cmdNumber].args[argNumber] = NULL;
             argNumber = 0;
+            // redirectPos(cmd, cmdNumber);
             cmdNumber++;
             cmd[cmdNumber].args = malloc(5 * sizeof(char*));
+            // cmd[cmdNumber].lessThan = -1;
+            // cmd[cmdNumber].greaterThan = -1;
         } else {
             cmd[cmdNumber].args[argNumber] = line_words[i];
             // printf("Inside else: %s\n", cmd[cmdNumber].args[argNumber]);
             argNumber++;
             if ( (i + 1) == num_words ) {
                 cmd[cmdNumber].args[argNumber] = NULL;
+                // redirectPos(cmd, cmdNumber);
             }
         }
     }
@@ -199,6 +211,17 @@ void exec(char** line_words, int num_words) {
     } else {
         cmd[0].args = NULL;
     }
+
+    // for ( int i = 0; i < cmdNumber; i++ ) {
+    //     printf("cmd[%d]: ", i);
+    //     int j = 0;
+    //     while ( cmd[i].args[j] != NULL ) {
+    //         printf("%s ", cmd[i].args[j]);
+    //         j++;
+    //     }
+    //     printf("\n");
+    //     printf("cmd lessThan: %d; cmd greaterThan: %d\n", cmd[i].lessThan, cmd[i].greaterThan);
+    // }
 
     exec_test(cmd);
 
