@@ -14,6 +14,7 @@ int numCommands(char **line, int *pipes, int *redirects);
 char** getCommand(char** line, int startPos, int endPos);
 int isMeta(char* c);
 void exec(char** line, int num_words);
+void freeMemory(struct command *cmd, int cmdNumber);
 void exec_test(struct command *cmd);
 //void parseCommand();
 // void exec(char **line);

@@ -147,6 +147,10 @@ void exec(char** line_words, int num_words) {
 
     exec_test(cmd);
 
+    freeMemory(cmd, cmdNumber);
+}
+
+void freeMemory(struct command *cmd, int cmdNumber){
     for ( int i = 0; i < cmdNumber; i++ ) {
     	for ( int j = 0; cmd[i].args[j] != NULL; j++ ) {
     		free(cmd[i].args[j]); cmd[i].args[j] = NULL;
