@@ -90,9 +90,8 @@ int main() {
         
         printf("Pipe_shell$ ");
     }
+    
+    printf("\n");
 
     return 0;
 }
-
-
-
