@@ -3,8 +3,8 @@
 
 struct command {
     char **args;
-    // int lessThan;
-    // int greaterThan;
+    int *lessThan;
+    int *greaterThan;
 };
 
 int pipePos(char **line, int startPos);
