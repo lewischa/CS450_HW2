@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 
@@ -96,7 +98,7 @@ int isMeta(char* c) {
 
 void exec(char** line_words, int num_words) {
 	struct command *cmd = malloc(num_words * sizeof(*cmd));
-    cmd[0].args = malloc(5 * sizeof(char*));
+    cmd[0].args = malloc(MAX_LINE_WORDS * sizeof(char*));
     cmd[0].lessThan = malloc(sizeof(int*));
     cmd[0].greaterThan = malloc(sizeof(int*));
     *cmd[0].lessThan = -1;
@@ -110,7 +112,7 @@ void exec(char** line_words, int num_words) {
             argNumber = 0;
             redirectPos(cmd, cmdNumber);
             cmdNumber++;
-            cmd[cmdNumber].args = (char**)malloc(5 * sizeof(char*));
+            cmd[cmdNumber].args = malloc(MAX_LINE_WORDS * sizeof(char*));
             cmd[cmdNumber].lessThan = malloc(sizeof(int*));
     		cmd[cmdNumber].greaterThan = malloc(sizeof(int*));
             *cmd[cmdNumber].lessThan = -1;
@@ -145,6 +147,15 @@ void exec(char** line_words, int num_words) {
     //     printf("cmd lessThan: %d; cmd greaterThan: %d\n", *cmd[i].lessThan, *cmd[i].greaterThan);
     // }
 
+
+
+
+
+
+    /*
+    UNCOMMENT THE LINE BELOW (AND COMMENT OUT exec_test(cmd);) TO RUN WITH REDIRECTION ON 1 COMMAND ONLY
+    */
+    // single_exec(cmd);
     exec_test(cmd);
 
     freeMemory(cmd, cmdNumber);
@@ -163,6 +174,70 @@ void freeMemory(struct command *cmd, int cmdNumber){
     if ( cmd ) {
     	free(cmd); cmd = NULL;
     }
+}
+
+void single_exec(struct command *cmd) {
+	pid_t pid;
+	int fd_in = 0;
+	int fd_out = 1;
+	int num_cmd_words = 0;
+	// printf("before dereference\n");
+	int input_redirect = *cmd[0].lessThan;
+	int output_redirect = *cmd[0].greaterThan;
+	char** command;
+	char* infile;
+	char* outfile;
+
+	// printf("before first loop\n");
+	for ( int i = 0; cmd[0].args[i] != NULL && strcmp(cmd[0].args[i], "<") != 0 && strcmp(cmd[0].args[i], ">") != 0; i++ ) {
+		// printf("first loop %d\n", i);
+		num_cmd_words++;
+	}
+	// printf("after first loop\n");
+	command = malloc( (num_cmd_words + 1) * sizeof(char*));
+	for ( int i = 0; i < num_cmd_words; i++ ) {
+		command[i] = malloc( strlen(cmd[0].args[i]) + 1);
+		strcpy( command[i], cmd[0].args[i] );
+	}
+	command[num_cmd_words] = NULL;
+	if ( input_redirect > -1 ) {
+		infile = malloc(strlen(cmd[0].args[input_redirect + 1]) + 1);
+		strcpy(infile, cmd[0].args[input_redirect + 1]);
+		fd_in = open(infile, O_RDONLY);
+		// printf("new fd_in: %d\n", fd_in);
+	}
+	if ( output_redirect > -1 ) {
+		outfile = malloc(strlen(cmd[0].args[output_redirect + 1]) + 1);
+		strcpy(outfile, cmd[0].args[output_redirect + 1]);
+		fd_out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+		// printf("new fd_out: %d\n", fd_out);
+		// error("reporting file error");
+	}
+	if ( (pid = fork()) == 0 ) {
+		dup2(fd_in, 0);
+		dup2(fd_out, 1);
+		execvp(command[0], command);
+		error("Single Exec Failure");
+	} else if ( pid == -1 ) {
+		error("Fork error in single_exec");
+	} else {
+		while ( wait(NULL) != -1 );
+		if ( fd_in != 0 ) {
+			if ( close(fd_in) == -1 )
+				error("Close fd_in failed");
+		}
+		if ( fd_out != 1 ) {
+			if ( close(fd_out) == -1 ) 
+				error("Close fd_out failed");
+		}
+	}
+
+	for ( int i = 0; i < num_cmd_words; i++ ) {
+		free(command[i]); command[i] = NULL;
+	}
+	if ( command ) {
+		free(command); command = NULL;
+	}
 }
 
 void exec_test(struct command *cmd) {

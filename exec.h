@@ -16,6 +16,7 @@ int isMeta(char* c);
 void exec(char** line, int num_words);
 void freeMemory(struct command *cmd, int cmdNumber);
 void exec_test(struct command *cmd);
+void single_exec(struct command *cmd);
 //void parseCommand();
 // void exec(char **line);
 // void loop_exec(char ***progs);
