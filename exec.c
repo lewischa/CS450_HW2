@@ -204,18 +204,21 @@ void single_exec(struct command *cmd) {
 		infile = malloc(strlen(cmd[0].args[input_redirect + 1]) + 1);
 		strcpy(infile, cmd[0].args[input_redirect + 1]);
 		fd_in = open(infile, O_RDONLY);
-		// printf("new fd_in: %d\n", fd_in);
+		printf("Could not open input file: %s. Proceeding with stdin.\n", infile);
 	}
 	if ( output_redirect > -1 ) {
 		outfile = malloc(strlen(cmd[0].args[output_redirect + 1]) + 1);
 		strcpy(outfile, cmd[0].args[output_redirect + 1]);
 		fd_out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
-		// printf("new fd_out: %d\n", fd_out);
-		// error("reporting file error");
+		printf("Could not open output file: %s. Proceeding with stdout.\n", outfile);
 	}
 	if ( (pid = fork()) == 0 ) {
-		dup2(fd_in, 0);
-		dup2(fd_out, 1);
+		if ( fd_in != -1 ) {
+			dup2(fd_in, 0);
+		}
+		if ( fd_out != -1 ) {
+			dup2(fd_out, 1);
+		}
 		execvp(command[0], command);
 		error("Single Exec Failure");
 	} else if ( pid == -1 ) {
