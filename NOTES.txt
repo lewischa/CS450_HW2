@@ -1,0 +1,29 @@
+* exec_test now named exec_launch
+
+* exec_launch handles input/output redirection with '<' and/or '>' and piping
+	- single_exec no longer in use, but just commented out for now
+	- input and output redirection will likely need some error handling if there is
+		a problem opening the input or output file (currently no error handling)
+
+* exec has basic implementation for checking for quoted arguments (not finished)
+	- Checks if first char of line_words[i] is '"' 
+	- concatenate all succeeding line_words until end quote is found
+		* This happens in getQuotedArg() <-- Where I left off
+	- Will need to increment argNumber after getting the quoted argument
+	- Will need to check if next i is equal to num_words
+		* model after following else statement (see comments in code)
+
+* NEW FUNCTIONS:
+	- exec_launch, renamed from exec_test
+	- isQuote
+		* checks if first character of word is '"', return 1 if so, 0 otherwise
+	- isEndQuote
+		* checks if the last character of a word is '"', return 1 if so, 0 otherwise
+	- getQuotedArg
+		* concatenate line_words from beginning quote to end quote as a single char*
+	- getRedirectedCommand
+		* return only the command portion of a command with input and/or output redirection
+	- getInfile
+		* return input file name when input redirection is present
+	- getOutfile  
+		* return output file name when output redirection is present

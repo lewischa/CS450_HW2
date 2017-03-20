@@ -10,6 +10,8 @@
 #include <string.h>
 #include <errno.h>
 
+
+
 int pipePos(char **line, int startPos) {
 	int i = startPos;
 	while (line[i] != '\0') {
@@ -96,6 +98,32 @@ int isMeta(char* c) {
     return 0;
 }
 
+int isQuote(char* arg) {
+	if ( arg[0] == '\0' ) return 0;
+	if ( arg[0] == '"' ) return 1;
+	return 0;
+}
+
+int isEndQuote(char* word) {
+	if ( word[strlen(word) - 1] == '"' ) {
+		return 1;
+	}
+	return 0;
+}
+
+
+// getQuotedArg will return the 'words' in char **line that are surrounded by quotes, 
+// concatenated into one string
+char* getQuotedArg(char **line, int pos) {
+	char *arg = malloc(strlen(line[pos]) + 1);
+	if ( isEndQuote(line[pos]) ) {
+		strcpy(arg, line[pos] + 1);
+		arg[strlen(arg) - 1] = '\0';
+		return arg;
+	}
+	//////////////////////////////////////////////////////////// CONTINUE HERE
+}
+
 void exec(char** line_words, int num_words) {
 	struct command *cmd = malloc(num_words * sizeof(*cmd));
     cmd[0].args = malloc(MAX_LINE_WORDS * sizeof(char*));
@@ -105,6 +133,8 @@ void exec(char** line_words, int num_words) {
     *cmd[0].greaterThan = -1;
     int cmdNumber = 0;
     int argNumber = 0;
+    char* quotedArg;
+
     for ( int i = 0; i < num_words; i++ ) {
         // printf("%lu\n", sizeof(cmd[cmdNumber].args));
         if ( isMeta(line_words[i]) ) {
@@ -117,10 +147,26 @@ void exec(char** line_words, int num_words) {
     		cmd[cmdNumber].greaterThan = malloc(sizeof(int*));
             *cmd[cmdNumber].lessThan = -1;
             *cmd[cmdNumber].greaterThan = -1;
+        } else if ( isQuote(line_words[i]) ) {
+        	// This block is executed when line_words[i] begins with a " (quote)
+
+        	cmd[cmdNumber].args[argNumber] = malloc(strlen(getQuotedArg(line_words, i)) + 1);
+
+        	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
+        	// May need to modify free memory function, not sure though
+        	strcpy(cmd[cmdNumber].args[argNumber], getQuotedArg(line_words, i));
+        	//////////////////////////////////////////////////////////// CONTINUE HERE
+        	while ( !isEndQuote(line_words[i]) ) {
+        		// Need this loop to advance i to the correct place after getQuotedArg()
+        		i++;
+        	}
+
+        	// will need to increment argNumber here and likely do the same check as the below else{} statement 
+        	// (if the next i is num_words, aka we're done and set last args[argNumber] to NULL)
+
         } else {
         	cmd[cmdNumber].args[argNumber] = malloc(strlen(line_words[i]) * sizeof(char) + 1);
         	strcpy(cmd[cmdNumber].args[argNumber], line_words[i]);
-            // cmd[cmdNumber].args[argNumber] = line_words[i];
             argNumber++;
             if ( (i + 1) == num_words ) {
                 cmd[cmdNumber].args[argNumber] = NULL;
@@ -131,7 +177,7 @@ void exec(char** line_words, int num_words) {
 
     if ( num_words > 0 ) {
         cmd[++cmdNumber].args = NULL;
-        // printf("cmdNumber: %d\n", cmdNumber);
+    	exec_launch(cmd);
     } else {
         cmd[0].args = NULL;
     }
@@ -148,15 +194,6 @@ void exec(char** line_words, int num_words) {
     // }
 
 
-
-
-
-
-    /*
-    UNCOMMENT THE LINE BELOW (AND COMMENT OUT exec_test(cmd);) TO RUN WITH REDIRECTION ON 1 COMMAND ONLY
-    */
-    // single_exec(cmd);
-    exec_test(cmd);
 
     freeMemory(cmd, cmdNumber);
 }
@@ -176,79 +213,158 @@ void freeMemory(struct command *cmd, int cmdNumber){
     }
 }
 
-void single_exec(struct command *cmd) {
-	pid_t pid;
-	int fd_in = 0;
-	int fd_out = 1;
-	int num_cmd_words = 0;
-	// printf("before dereference\n");
-	int input_redirect = *cmd[0].lessThan;
-	int output_redirect = *cmd[0].greaterThan;
-	char** command;
-	char* infile;
-	char* outfile;
 
-	// printf("before first loop\n");
-	for ( int i = 0; cmd[0].args[i] != NULL && strcmp(cmd[0].args[i], "<") != 0 && strcmp(cmd[0].args[i], ">") != 0; i++ ) {
-		// printf("first loop %d\n", i);
+
+
+
+
+/* 
+		This function should no longer be necessary. Leaving commented out for now.
+*/
+
+
+// void single_exec(struct command *cmd, int pos, int pfd[], int inDescriptor) {
+// 	pid_t pid;
+// 	int fd_in = 0;
+// 	int fd_out = 1;
+// 	int num_cmd_words = 0;
+// 	// printf("before dereference\n");
+// 	int input_redirect = *cmd[0].lessThan;
+// 	int output_redirect = *cmd[0].greaterThan;
+// 	char** command;
+// 	char* infile;
+// 	char* outfile;
+
+// 	// printf("before first loop\n");
+// 	for ( int i = 0; cmd[pos].args[i] != NULL && strcmp(cmd[pos].args[i], "<") != 0 && strcmp(cmd[pos].args[i], ">") != 0; i++ ) {
+// 		// printf("first loop %d\n", i);
+// 		num_cmd_words++;
+// 	}
+// 	// printf("after first loop\n");
+// 	command = malloc( (num_cmd_words + 1) * sizeof(char*));
+// 	for ( int i = 0; i < num_cmd_words; i++ ) {
+// 		command[i] = malloc( strlen(cmd[pos].args[i]) + 1);
+// 		strcpy( command[i], cmd[pos].args[i] );
+// 	}
+// 	command[num_cmd_words] = NULL;
+// 	if ( input_redirect > -1 ) {
+// 		infile = malloc(strlen(cmd[pos].args[input_redirect + 1]) + 1);
+// 		strcpy(infile, cmd[pos].args[input_redirect + 1]);
+// 		fd_in = open(infile, O_RDONLY);
+// 		// printf("Could not open input file: %s. Proceeding with stdin.\n", infile);
+// 	}
+// 	if ( output_redirect > -1 ) {
+// 		outfile = malloc(strlen(cmd[pos].args[output_redirect + 1]) + 1);
+// 		strcpy(outfile, cmd[pos].args[output_redirect + 1]);
+// 		fd_out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+// 		// printf("Could not open output file: %s. Proceeding with stdout.\n", outfile);
+// 	}
+// 	if ( (pid = fork()) == 0 ) {
+// 		if ( fd_in != -1 ) {
+// 			dup2(fd_in, 0);
+// 		}
+// 		if ( fd_out != -1 ) {
+// 			dup2(fd_out, 1);
+// 		}
+// 		execvp(command[0], command);
+// 		error("Single Exec Failure");
+// 	} else if ( pid == -1 ) {
+// 		error("Fork error in single_exec");
+// 	} else {
+// 		while ( wait(NULL) != -1 );
+// 		if ( fd_in != 0 ) {
+// 			if ( close(fd_in) == -1 )
+// 				error("Close fd_in failed");
+// 		}
+// 		if ( fd_out != 1 ) {
+// 			if ( close(fd_out) == -1 ) 
+// 				error("Close fd_out failed");
+// 		}
+// 	}
+
+// 	for ( int i = 0; i < num_cmd_words; i++ ) {
+// 		free(command[i]); command[i] = NULL;
+// 	}
+// 	if ( command ) {
+// 		free(command); command = NULL;
+// 	}
+
+// 	canContinue = 1;
+// 	// if ( infile ) {
+// 	// 	free(infile); infile = NULL;
+// 	// }
+// 	// if ( outfile ) {
+// 	// 	free(outfile); outfile = NULL;
+// 	// }
+
+// }
+
+
+
+
+
+char** getRedirectedCommand(struct command *cmd, int pos) {
+	// Returns command portion of a redirected command
+
+	/* Example:
+
+		If the line is: head -5 < main.c > test.txt
+		getRedirectedCommand() will return: head -5
+
+	*/
+	int num_cmd_words = 0;
+	char **command = malloc(sizeof(cmd[pos].args));
+	for ( int i = 0; cmd[pos].args[i] != NULL && strcmp(cmd[pos].args[i], "<") != 0 && strcmp(cmd[pos].args[i], ">") != 0; i++ ) {
 		num_cmd_words++;
 	}
-	// printf("after first loop\n");
 	command = malloc( (num_cmd_words + 1) * sizeof(char*));
 	for ( int i = 0; i < num_cmd_words; i++ ) {
-		command[i] = malloc( strlen(cmd[0].args[i]) + 1);
-		strcpy( command[i], cmd[0].args[i] );
+		command[i] = malloc( strlen(cmd[pos].args[i]) + 1);
+		strcpy( command[i], cmd[pos].args[i] );
 	}
 	command[num_cmd_words] = NULL;
-	if ( input_redirect > -1 ) {
-		infile = malloc(strlen(cmd[0].args[input_redirect + 1]) + 1);
-		strcpy(infile, cmd[0].args[input_redirect + 1]);
-		fd_in = open(infile, O_RDONLY);
-		printf("Could not open input file: %s. Proceeding with stdin.\n", infile);
-	}
-	if ( output_redirect > -1 ) {
-		outfile = malloc(strlen(cmd[0].args[output_redirect + 1]) + 1);
-		strcpy(outfile, cmd[0].args[output_redirect + 1]);
-		fd_out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
-		printf("Could not open output file: %s. Proceeding with stdout.\n", outfile);
-	}
-	if ( (pid = fork()) == 0 ) {
-		if ( fd_in != -1 ) {
-			dup2(fd_in, 0);
-		}
-		if ( fd_out != -1 ) {
-			dup2(fd_out, 1);
-		}
-		execvp(command[0], command);
-		error("Single Exec Failure");
-	} else if ( pid == -1 ) {
-		error("Fork error in single_exec");
-	} else {
-		while ( wait(NULL) != -1 );
-		if ( fd_in != 0 ) {
-			if ( close(fd_in) == -1 )
-				error("Close fd_in failed");
-		}
-		if ( fd_out != 1 ) {
-			if ( close(fd_out) == -1 ) 
-				error("Close fd_out failed");
-		}
-	}
-
-	for ( int i = 0; i < num_cmd_words; i++ ) {
-		free(command[i]); command[i] = NULL;
-	}
-	if ( command ) {
-		free(command); command = NULL;
-	}
+	return command;
 }
 
-void exec_test(struct command *cmd) {
+char* getOutfile(struct command *cmd, int pos) {
+	// Returns output file name of a redirected command
+
+	/* Example:
+
+		If the line is: head -5 < main.c > test.txt
+		getOutfile() will return: test.txt
+
+	*/
+	char *outfile = malloc(strlen(cmd[pos].args[*cmd[pos].greaterThan + 1]) + 1);
+	strcpy(outfile, cmd[pos].args[*cmd[pos].greaterThan + 1]);
+	return outfile;
+}
+
+char* getInfile(struct command *cmd, int pos) {
+	// Returns input file name of a redirected command
+
+	/* Example:
+
+		If the line is: head -5 < main.c > test.txt
+		getInfile() will return: main.c
+
+	*/
+	char *infile = malloc(strlen(cmd[pos].args[*cmd[pos].lessThan + 1]) + 1);
+	strcpy(infile, cmd[pos].args[*cmd[pos].lessThan + 1]);
+	return infile;
+}
+
+
+
+void exec_launch(struct command *cmd) {
 	int pfd[2];
 	pid_t pid;
 	int fd_in = 0;
+	int fd_out = 1;
 	int count = 0;
-
+	char **redirectedCommand;
+	char *input_file;
+	char *output_file;
 
 	
 	while ( cmd[count].args != NULL ) {
@@ -257,20 +373,52 @@ void exec_test(struct command *cmd) {
 		if ( (pid = fork()) == -1 ) {
 			error("Fork failed");
 		} else if ( pid == 0 ) {
-			dup2(fd_in, 0);
-			if ( cmd[count + 1].args != NULL ) {
-				dup2( pfd[1], 1 );
-			} 
-			close(pfd[0]);
-			execvp( cmd[count].args[0], cmd[count].args );
-			error("Exec failure");
+			if ( *cmd[count].lessThan != -1 || *cmd[count].greaterThan != -1 ) {
+				// This if statement is executed when input or output is redirected using '<' or '>', or both
+				redirectedCommand = malloc(sizeof(cmd[count].args));
+				redirectedCommand = getRedirectedCommand(cmd, count);
+				if ( *cmd[count].lessThan != -1 ) {
+					// Handle input redirection
+						// Get filename, open the file, and set fd_in to the file descriptor
+					input_file = malloc(strlen(cmd[count].args[*cmd[count].lessThan + 1]) + 1);
+					input_file = getInfile(cmd, count);
+					fd_in = open(input_file, O_RDONLY);
+					// LIKELY NEEDS ERROR HANDLING
+				}
+				if ( *cmd[count].greaterThan != -1 ) {
+					// Handle output redirection
+						// Get filename, open the file, and set fd_out to the file descriptor
+					output_file = malloc(strlen(cmd[count].args[*cmd[count].greaterThan + 1]) + 1);
+					output_file = getOutfile(cmd, count);
+					fd_out = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+					// Replace stdout with fd_out
+						// NEEDS ERROR HANDLING
+					dup2(fd_out, 1);
+				} else {
+					if ( cmd[count + 1].args != NULL ) {
+						dup2( pfd[1], 1 );
+					}
+				}
+				dup2(fd_in, 0);
+				close(pfd[0]);
+				execvp(redirectedCommand[0], redirectedCommand);
+				error("Redirected Exec Failure");
+			}
+			else {
+				dup2(fd_in, 0);
+				if ( cmd[count + 1].args != NULL ) {
+					dup2( pfd[1], 1 );
+				} 
+				close(pfd[0]);
+				execvp( cmd[count].args[0], cmd[count].args );
+				error("Exec failure");
+			}
 		} else {
 			while (wait(NULL) != -1);
 			close(pfd[1]);
 			fd_in = pfd[0];
 			count++;
 		}
-		// printf("progs address: %p\n", progs);
 	}
 }
 
