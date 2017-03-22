@@ -14,18 +14,22 @@
 
 char* stripQuotes(char* input){
     int sizeOfInput = 0;
+    //get new size of argument without quotation marks
     for(int i = 0; input[i] != '\0'; i++){
         if(input[i] != '\"'){
             sizeOfInput++;
         }
     }
+    //allocate memory for result of new string
     char* result = malloc((sizeOfInput+1) * sizeof(char));
     int resultIterator = 0;
+    //create new string
     for(int i = 0; input[i] != '\0'; i++){
         if(input[i] != '\"'){
             result[resultIterator++] = input[i];
         }
     }
+    //Add null terminating character to the end of the string
     result[sizeOfInput] = '\0';
     return result;
 }
@@ -131,20 +135,25 @@ void exec(char** line_words, int num_words) {
         } else if ( isQuote(line_words[i]) ) {
 
         	// This block is executed when line_words[i] begins with a " (quote)
-            int qStrLength = strlen(stripQuotes(line_words[i]));
-            for(int q = i+1; !isEndQuote(line_words[q-1]); q++){
-            	// Get necessary size of de-quoted string for memory allocation
-                qStrLength += (strlen(stripQuotes(line_words[q]))+1);
-            }
+                //iterate through line_words to get the size of the quoted string
+                int qStrLength = strlen(stripQuotes(line_words[i]));
+                for(int q = i+1; !isEndQuote(line_words[q-1]); q++){
+                    // Get necessary size of de-quoted string for memory allocation
+                    qStrLength += (strlen(stripQuotes(line_words[q]))+1);
+                }
+                //allocate memory for the command argument
         	cmd[cmdNumber].args[argNumber] = malloc((qStrLength+1) * sizeof(char));
 
         	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
         	while ( !isEndQuote(line_words[i]) ) {
                     cmd[cmdNumber].args[argNumber] = strcat(cmd[cmdNumber].args[argNumber],strcat(stripQuotes(line_words[i++])," "));
         	}
+                //Grab last quoted argument and add it to command argument
                 char* temp = malloc(strlen(stripQuotes(line_words[i])+1)*sizeof(char));
                 strcpy(temp, stripQuotes(line_words[i]));
                 cmd[cmdNumber].args[argNumber] = strcat(cmd[cmdNumber].args[argNumber],temp);
+                
+                //increment argNumber
                 argNumber++;
         	
                 if ( (i + 1) == num_words ) {

@@ -1,3 +1,9 @@
+/*
+ * Authors: Jeremy Olsen; Chad Lewis
+ * Course: CS 450
+ * Assignment: Piping and redirection homework
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,13 +12,6 @@
 #include "exec.h"
 #include <sys/wait.h>
 
-// int isMeta(char* c) {
-//     // printf("isMeta: %s\n", c);
-//     if ( strcmp(c, "|") == 0 ) {
-//         return 1;
-//     } 
-//     return 0;
-// }
 
 int main() {
     // Buffer for reading one line of input
