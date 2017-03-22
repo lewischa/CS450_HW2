@@ -29,17 +29,18 @@ int pipePos(char **line, int startPos) {
 char* stripQuotes(char* input){
     int sizeOfInput = 0;
     for(int i = 0; input[i] != NULL; i++){
-        if(input[i] != '\"' && input[i] != '\''){
+        if(input[i] != '\"'){
             sizeOfInput++;
         }
     }
-    char* result = malloc(sizeOfInput * sizeof(char));
+    char* result = malloc((sizeOfInput+1) * sizeof(char));
     int resultIterator = 0;
     for(int i = 0; input[i] != NULL; i++){
-        if(input[i] != '\"' && input[i] != '\''){
+        if(input[i] != '\"'){
             result[resultIterator++] = input[i];
         }
     }
+    result[sizeOfInput] = '\0';
     return result;
 }
 void redirectPos(struct command *cmd, int index) {
@@ -136,6 +137,7 @@ char* getQuotedArg(char **line, int pos) {
 		arg[strlen(arg) - 1] = '\0';
 		return arg;
 	}
+        return arg;
 	//////////////////////////////////////////////////////////// CONTINUE HERE
 }
 
@@ -162,31 +164,41 @@ void exec(char** line_words, int num_words) {
     		cmd[cmdNumber].greaterThan = malloc(sizeof(int*));
             *cmd[cmdNumber].lessThan = -1;
             *cmd[cmdNumber].greaterThan = -1;
-//        } else if ( isQuote(line_words[i]) ) {
-//        	// This block is executed when line_words[i] begins with a " (quote)
-//
-//        	cmd[cmdNumber].args[argNumber] = malloc(strlen(getQuotedArg(line_words, i)) + 1);
-//
-//        	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
-//        	// May need to modify free memory function, not sure though
-//        	strcpy(cmd[cmdNumber].args[argNumber], getQuotedArg(line_words, i));
-//        	//////////////////////////////////////////////////////////// CONTINUE HERE
-//        	while ( !isEndQuote(line_words[i]) ) {
-//        		// Need this loop to advance i to the correct place after getQuotedArg()
-//        		i++;
-//        	}
+        } else if ( isQuote(line_words[i]) ) {
+        	// This block is executed when line_words[i] begins with a " (quote)
+            int qStrLength = strlen(stripQuotes(line_words[i]));
+            for(int q = i+1; !isEndQuote(line_words[q-1]); q++){
+                qStrLength += (strlen(stripQuotes(line_words[q]))+1);
+            }
+        	cmd[cmdNumber].args[argNumber] = malloc((qStrLength+1) * sizeof(char));
 
+        	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
+        	// May need to modify free memory function, not sure though
+//        	strcpy(cmd[cmdNumber].args[argNumber], stripQuotes(line_words[i++] + ' '));
+        	while ( !isEndQuote(line_words[i]) ) {
+        		// Need this loop to advance i to the correct place after getQuotedArg()
+                    cmd[cmdNumber].args[argNumber] = strcat(cmd[cmdNumber].args[argNumber],strcat(stripQuotes(line_words[i++])," "));
+//        		i++;
+        	}
+                char* temp = malloc(strlen(stripQuotes(line_words[i])+1)*sizeof(char));
+                strcpy(temp, stripQuotes(line_words[i]));
+                cmd[cmdNumber].args[argNumber] = strcat(cmd[cmdNumber].args[argNumber],temp);
+                argNumber++;
         	// will need to increment argNumber here and likely do the same check as the below else{} statement 
         	// (if the next i is num_words, aka we're done and set last args[argNumber] to NULL)
-
-        } else {
-        	cmd[cmdNumber].args[argNumber] = malloc(strlen(line_words[i]) * sizeof(char) + 1);
-        	strcpy(cmd[cmdNumber].args[argNumber], stripQuotes(line_words[i]));
-            argNumber++;
-            if ( (i + 1) == num_words ) {
+                if ( (i + 1) == num_words ) {
                 cmd[cmdNumber].args[argNumber] = NULL;
                 redirectPos(cmd, cmdNumber);
-            }
+                }
+                
+        } else {
+        	cmd[cmdNumber].args[argNumber] = malloc(strlen(line_words[i]) * sizeof(char) + 1);
+        	strcpy(cmd[cmdNumber].args[argNumber], line_words[i]);
+                argNumber++;
+                if ( (i + 1) == num_words ) {
+                    cmd[cmdNumber].args[argNumber] = NULL;
+                    redirectPos(cmd, cmdNumber);
+                }
         }
     }
 
