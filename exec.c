@@ -26,7 +26,22 @@ int pipePos(char **line, int startPos) {
 	return i;
 }
 
-
+char* stripQuotes(char* input){
+    int sizeOfInput = 0;
+    for(int i = 0; input[i] != NULL; i++){
+        if(input[i] != '\"' && input[i] != '\''){
+            sizeOfInput++;
+        }
+    }
+    char* result = malloc(sizeOfInput * sizeof(char));
+    int resultIterator = 0;
+    for(int i = 0; input[i] != NULL; i++){
+        if(input[i] != '\"' && input[i] != '\''){
+            result[resultIterator++] = input[i];
+        }
+    }
+    return result;
+}
 void redirectPos(struct command *cmd, int index) {
 	// printf("in redirectPos\n");
 	int i = 0; 
@@ -147,26 +162,26 @@ void exec(char** line_words, int num_words) {
     		cmd[cmdNumber].greaterThan = malloc(sizeof(int*));
             *cmd[cmdNumber].lessThan = -1;
             *cmd[cmdNumber].greaterThan = -1;
-        } else if ( isQuote(line_words[i]) ) {
-        	// This block is executed when line_words[i] begins with a " (quote)
-
-        	cmd[cmdNumber].args[argNumber] = malloc(strlen(getQuotedArg(line_words, i)) + 1);
-
-        	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
-        	// May need to modify free memory function, not sure though
-        	strcpy(cmd[cmdNumber].args[argNumber], getQuotedArg(line_words, i));
-        	//////////////////////////////////////////////////////////// CONTINUE HERE
-        	while ( !isEndQuote(line_words[i]) ) {
-        		// Need this loop to advance i to the correct place after getQuotedArg()
-        		i++;
-        	}
+//        } else if ( isQuote(line_words[i]) ) {
+//        	// This block is executed when line_words[i] begins with a " (quote)
+//
+//        	cmd[cmdNumber].args[argNumber] = malloc(strlen(getQuotedArg(line_words, i)) + 1);
+//
+//        	// Get all elements of line_words from starting quote to end quote, copy into current args[argNumber]
+//        	// May need to modify free memory function, not sure though
+//        	strcpy(cmd[cmdNumber].args[argNumber], getQuotedArg(line_words, i));
+//        	//////////////////////////////////////////////////////////// CONTINUE HERE
+//        	while ( !isEndQuote(line_words[i]) ) {
+//        		// Need this loop to advance i to the correct place after getQuotedArg()
+//        		i++;
+//        	}
 
         	// will need to increment argNumber here and likely do the same check as the below else{} statement 
         	// (if the next i is num_words, aka we're done and set last args[argNumber] to NULL)
 
         } else {
         	cmd[cmdNumber].args[argNumber] = malloc(strlen(line_words[i]) * sizeof(char) + 1);
-        	strcpy(cmd[cmdNumber].args[argNumber], line_words[i]);
+        	strcpy(cmd[cmdNumber].args[argNumber], stripQuotes(line_words[i]));
             argNumber++;
             if ( (i + 1) == num_words ) {
                 cmd[cmdNumber].args[argNumber] = NULL;

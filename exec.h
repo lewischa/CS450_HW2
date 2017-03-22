@@ -9,6 +9,7 @@ struct command {
 
 int pipePos(char **line, int startPos);
 void redirectPos(struct command *cmd, int index);
+char* stripQuotes(char* input);
 int numCommands(char **line, int *pipes, int *redirects);
 char** getCommand(char** line, int startPos, int endPos);
 int isMeta(char* c);
