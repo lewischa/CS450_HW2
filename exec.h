@@ -1,3 +1,9 @@
+/*
+ * Authors: Jeremy Olsen; Chad Lewis
+ * Course: CS 450
+ * Assignment: Piping and redirection homework
+ */
+
 #ifndef EXEC_H
 #define EXEC_H
 

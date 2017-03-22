@@ -1,3 +1,9 @@
+/*
+ * Authors: Jeremy Olsen; Chad Lewis
+ * Course: CS 450
+ * Assignment: Piping and redirection homework
+ */
+
 #include "exec.h"
 #include "constants.h"
 #include <stdio.h> 
