@@ -16,7 +16,7 @@ char* stripQuotes(char* input){
     int sizeOfInput = 0;
     //get new size of argument without quotation marks
     for(int i = 0; input[i] != '\0'; i++){
-        if(input[i] != '\"'){
+        if(input[i] != '\"' && input[i] != '\''){
             sizeOfInput++;
         }
     }
@@ -25,7 +25,7 @@ char* stripQuotes(char* input){
     int resultIterator = 0;
     //create new string
     for(int i = 0; input[i] != '\0'; i++){
-        if(input[i] != '\"'){
+        if(input[i] != '\"' && input[i] != '\''){
             result[resultIterator++] = input[i];
         }
     }
@@ -73,7 +73,7 @@ int isQuote(char* arg) {
 */
 
 	if ( arg[0] == '\0' ) return 0;
-	if ( arg[0] == '"' ) return 1;
+	if ( arg[0] == '\"' ||  arg[0] == '\'') return 1;
 	return 0;
 }
 
@@ -82,7 +82,7 @@ int isEndQuote(char* word) {
 	Return 1 if last characer in word is '"', return 0 otherwise
 */
 
-	if ( word[strlen(word) - 1] == '"' ) {
+	if ( word[strlen(word) - 1] == '\"'  || word[strlen(word) - 1] == '\'') {
 		return 1;
 	}
 	return 0;
